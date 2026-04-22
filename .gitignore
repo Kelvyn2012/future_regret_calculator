@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+*.pyc
+.mypy_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.egg
+
+# Node / Frontend
+node_modules/
+dist/
+.next/
+.nuxt/
+out/
+.cache/
+*.tsbuildinfo
+.eslintcache
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# SQLite (if used later)
+*.db
+*.sqlite
+*.sqlite3

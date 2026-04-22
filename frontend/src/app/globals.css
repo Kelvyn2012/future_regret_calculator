@@ -19,7 +19,6 @@
 }
 
 @layer utilities {
-  /* Custom range input styling */
   input[type='range'] {
     -webkit-appearance: none;
     appearance: none;

@@ -1,5 +1,7 @@
+'use client'
+
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAppStore } from '../store/useAppStore'
 import { Button } from '../components/ui/Button'
@@ -9,22 +11,22 @@ import { DriverCard } from '../components/results/DriverCard'
 import { RegretChart } from '../components/results/RegretChart'
 
 export function ResultsPage() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { result, decisionText, reset } = useAppStore()
 
   useEffect(() => {
-    if (!result) navigate('/')
-  }, [result, navigate])
+    if (!result) router.push('/')
+  }, [result, router])
 
   if (!result) return null
 
   function handleStartOver() {
     reset()
-    navigate('/')
+    router.push('/')
   }
 
   function handleEditAnswers() {
-    navigate('/assess')
+    router.push('/assess')
   }
 
   return (

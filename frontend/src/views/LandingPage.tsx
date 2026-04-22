@@ -1,4 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+'use client'
+
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Button } from '../components/ui/Button'
 import { SEED_SCENARIOS } from '../data/questions'
@@ -23,19 +25,18 @@ const STEPS = [
 ]
 
 export function LandingPage() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const setDecisionText = useAppStore((s) => s.setDecisionText)
 
   function startWithScenario(scenario: string) {
     setDecisionText(scenario)
-    navigate('/assess')
+    router.push('/assess')
   }
 
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950">
-        {/* Subtle grid overlay */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -68,7 +69,7 @@ export function LandingPage() {
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Button
                 size="lg"
-                onClick={() => navigate('/assess')}
+                onClick={() => router.push('/assess')}
                 className="!bg-white !text-brand-700 hover:!bg-brand-50 !shadow-xl"
               >
                 Start your assessment
@@ -87,7 +88,6 @@ export function LandingPage() {
             </div>
           </motion.div>
 
-          {/* Abstract visual */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -119,9 +119,7 @@ export function LandingPage() {
           className="text-center mb-14"
         >
           <h2 className="text-3xl font-bold text-slate-900">How it works</h2>
-          <p className="mt-3 text-slate-500 text-lg">
-            Three simple steps. One clearer picture.
-          </p>
+          <p className="mt-3 text-slate-500 text-lg">Three simple steps. One clearer picture.</p>
         </motion.div>
         <div className="grid sm:grid-cols-3 gap-8">
           {STEPS.map((step, i) => (
@@ -192,13 +190,13 @@ export function LandingPage() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-2xl font-bold text-slate-900">What you'll receive</h2>
+          <h2 className="text-2xl font-bold text-slate-900">What you&apos;ll receive</h2>
         </motion.div>
         <div className="grid sm:grid-cols-2 gap-4">
           {[
             { icon: '📊', title: 'Overall regret score', desc: 'A calibrated 0–100 risk metric.' },
             { icon: '⏱', title: 'Short vs. long-term split', desc: 'Near-term disruption vs. lifetime opportunity cost.' },
-            { icon: '🔍', title: 'Top driving factors', desc: 'Ranked explanations of what\'s shaping the result.' },
+            { icon: '🔍', title: 'Top driving factors', desc: "Ranked explanations of what's shaping the result." },
             { icon: '✉️', title: 'A message from your future self', desc: 'Personalized, non-judgmental reflection.' },
             { icon: '💭', title: 'Reflection questions', desc: 'Prompts designed to deepen your own thinking.' },
             { icon: '🧭', title: 'Likely regret type', desc: 'Whether acting or not acting carries more risk.' },
@@ -226,7 +224,7 @@ export function LandingPage() {
           viewport={{ once: true }}
           className="mt-12 text-center"
         >
-          <Button size="lg" onClick={() => navigate('/assess')}>
+          <Button size="lg" onClick={() => router.push('/assess')}>
             Start your assessment
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

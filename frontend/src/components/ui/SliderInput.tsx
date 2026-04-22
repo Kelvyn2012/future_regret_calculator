@@ -1,3 +1,5 @@
+'use client'
+
 interface SliderInputProps {
   value: number
   onChange: (val: number) => void

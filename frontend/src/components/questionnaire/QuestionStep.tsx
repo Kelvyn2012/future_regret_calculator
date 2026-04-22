@@ -1,3 +1,5 @@
+'use client'
+
 import { motion } from 'framer-motion'
 import { SliderInput } from '../ui/SliderInput'
 import type { Question, AnswerSet } from '../../types'

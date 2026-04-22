@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAppStore } from '../store/useAppStore'
 import { QUESTIONS, SEED_SCENARIOS } from '../data/questions'
@@ -16,7 +18,7 @@ const TOTAL_QUESTION_STEPS = QUESTIONS.length
 const TOTAL_STEPS = 2 + TOTAL_QUESTION_STEPS // text + category + 12 questions
 
 export function QuestionnairePage() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const store = useAppStore()
   const [step, setStep] = useState(0)
   const [error, setError] = useState('')
@@ -84,7 +86,7 @@ export function QuestionnairePage() {
         answers: fullAnswers as unknown as AnswerSet,
       })
       store.setResult(result)
-      navigate('/results')
+      router.push('/results')
     } catch (e: any) {
       const msg = e?.response?.data?.detail ?? 'Something went wrong. Please try again.'
       setError(typeof msg === 'string' ? msg : JSON.stringify(msg))
@@ -95,7 +97,7 @@ export function QuestionnairePage() {
 
   function handleBack() {
     if (step === 0) {
-      navigate('/')
+      router.push('/')
     } else {
       setStep((s) => s - 1)
     }
@@ -109,7 +111,7 @@ export function QuestionnairePage() {
       <header className="border-b border-slate-100 bg-white sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-6 h-16 flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => router.push('/')}
             className="text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

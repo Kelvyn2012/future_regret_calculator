@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-load_dotenv()  # must be before any app imports that read DATABASE_URL
+load_dotenv()  # no-op on Vercel (vars are injected); useful locally
 
 import os
 from fastapi import FastAPI
@@ -9,19 +9,28 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers import calculate, assessments
 
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5173,http://localhost:3000"
+_is_serverless = bool(os.getenv("VERCEL"))
+
+# On Vercel the frontend and API share the same domain, so CORS is technically
+# unnecessary for production — but we still set it for local dev and previews.
+# VERCEL_URL is automatically injected by Vercel on every deployment.
+_env_origins = os.getenv(
+    "ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000"
 ).split(",")
+_vercel_url = os.getenv("VERCEL_URL")  # e.g. "your-project.vercel.app"
+ALLOWED_ORIGINS = _env_origins + ([f"https://{_vercel_url}"] if _vercel_url else [])
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Verify DB connection on startup
-    from app.db.database import engine
-    async with engine.connect():
-        pass
+    if not _is_serverless:
+        # Verify DB connectivity on local startup — skip on Vercel cold starts
+        # to avoid adding latency to the first request.
+        from app.db.database import engine
+        async with engine.connect():
+            pass
     yield
+    from app.db.database import engine
     await engine.dispose()
 
 

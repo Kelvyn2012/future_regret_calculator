@@ -1,18 +1,35 @@
+from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
+load_dotenv()  # must be before any app imports that read DATABASE_URL
+
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import os
 
-from app.routers import calculate
+from app.routers import calculate, assessments
 
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:5173,http://localhost:3000"
 ).split(",")
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Verify DB connection on startup
+    from app.db.database import engine
+    async with engine.connect():
+        pass
+    yield
+    await engine.dispose()
+
+
 app = FastAPI(
     title="Future Regret Calculator API",
     description="Heuristic scoring engine for reflective decision-making.",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -24,8 +41,17 @@ app.add_middleware(
 )
 
 app.include_router(calculate.router, prefix="/api/v1")
+app.include_router(assessments.router, prefix="/api/v1")
 
 
 @app.get("/health")
-def health():
-    return {"status": "ok", "service": "future-regret-calculator"}
+async def health():
+    from app.db.database import engine
+    from sqlalchemy import text
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        db_status = "connected"
+    except Exception as exc:
+        db_status = f"error: {exc}"
+    return {"status": "ok", "service": "future-regret-calculator", "db": db_status}

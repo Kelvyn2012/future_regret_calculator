@@ -1,3 +1,4 @@
+import uuid
 from pydantic import BaseModel, Field, field_validator
 from typing import Literal, Annotated
 
@@ -52,6 +53,8 @@ class TopDriver(BaseModel):
 
 
 class CalculationResult(BaseModel):
+    id: uuid.UUID | None = None          # result row id (set after DB persist)
+    decision_id: uuid.UUID | None = None  # decision row id
     overall_score: int = Field(ge=0, le=100)
     short_term_regret: int = Field(ge=0, le=100)
     long_term_regret: int = Field(ge=0, le=100)
@@ -64,3 +67,18 @@ class CalculationResult(BaseModel):
     future_you_message: str
     reflection_questions: list[str]
     disclaimer: str
+
+
+class AssessmentSummary(BaseModel):
+    """Lightweight row returned by the history endpoint."""
+
+    id: uuid.UUID
+    decision_id: uuid.UUID
+    created_at: str
+    decision_text: str
+    category: str
+    overall_score: int
+    likely_regret_type: REGRET_TYPES
+    confidence_level: CONFIDENCE_LEVELS
+
+    model_config = {"from_attributes": True}

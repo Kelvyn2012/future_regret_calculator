@@ -1,18 +1,57 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import ValidationError
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import DecisionInput, CalculationResult
+from app.db.database import get_db
+from app.db.orm import Decision, Result
+from app.models import CalculationResult, DecisionInput
 from app.scoring.engine import score_decision
 
 router = APIRouter(tags=["calculate"])
 
 
 @router.post("/calculate", response_model=CalculationResult)
-def calculate(input_data: DecisionInput) -> CalculationResult:
+async def calculate(input_data: DecisionInput, db: AsyncSession = Depends(get_db)) -> CalculationResult:
     try:
-        return score_decision(input_data)
+        result = score_decision(input_data)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Scoring error: {str(exc)}") from exc
+
+    try:
+        decision_row = Decision(
+            decision_text=input_data.decision_text,
+            category=input_data.category,
+            **input_data.answers.model_dump(),
+        )
+        db.add(decision_row)
+        await db.flush()  # get decision_row.id before inserting result
+
+        result_row = Result(
+            decision_id=decision_row.id,
+            overall_score=result.overall_score,
+            short_term_regret=result.short_term_regret,
+            long_term_regret=result.long_term_regret,
+            action_regret_raw=result.action_regret_raw,
+            inaction_regret_raw=result.inaction_regret_raw,
+            likely_regret_type=result.likely_regret_type,
+            confidence_level=result.confidence_level,
+            top_drivers=[d.model_dump() for d in result.top_drivers],
+            narrative_summary=result.narrative_summary,
+            future_you_message=result.future_you_message,
+            reflection_questions=result.reflection_questions,
+            disclaimer=result.disclaimer,
+        )
+        db.add(result_row)
+        await db.commit()
+
+        result.id = result_row.id
+        result.decision_id = decision_row.id
+    except Exception as exc:
+        await db.rollback()
+        # Don't fail the whole request if persistence fails — still return the result
+        import logging
+        logging.getLogger(__name__).error("DB persist failed: %s", exc)
+
+    return result
 
 
 @router.get("/questions")

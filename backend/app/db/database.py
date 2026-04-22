@@ -56,14 +56,29 @@ def _to_psycopg2_url(url: str) -> str:
 ASYNC_DATABASE_URL: str = _to_asyncpg_url(_raw_url)
 SYNC_DATABASE_URL: str = _to_psycopg2_url(_raw_url)
 
-engine = create_async_engine(
-    ASYNC_DATABASE_URL,
-    connect_args={"ssl": "require"},
-    pool_size=5,
-    max_overflow=10,
-    pool_pre_ping=True,
-    echo=False,
-)
+# Vercel (and other serverless runtimes) don't persist state between invocations,
+# so connection pools are useless and leak. NullPool creates a fresh connection
+# per request and closes it immediately — the right behaviour for serverless.
+# Neon's pooler endpoint handles the actual connection pooling at the infra level.
+_is_serverless = bool(os.getenv("VERCEL"))
+
+if _is_serverless:
+    from sqlalchemy.pool import NullPool
+    engine = create_async_engine(
+        ASYNC_DATABASE_URL,
+        connect_args={"ssl": "require"},
+        poolclass=NullPool,
+        echo=False,
+    )
+else:
+    engine = create_async_engine(
+        ASYNC_DATABASE_URL,
+        connect_args={"ssl": "require"},
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
+        echo=False,
+    )
 
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
